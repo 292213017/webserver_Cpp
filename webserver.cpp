@@ -46,3 +46,10 @@ void Webserver::log_write()
             Log::get_instance()->init("./ServerLog", m_close_log, 2000, 800000, 0);
     }
 }
+
+void Webserver::sql_pool(){
+    // 创建一个数据库连接池的对象
+    m_connPool = connection_pool::GetInstance();
+    m_connPool->init("localhost",m_user,m_passWord,m_databaseName,3306, m_sql_num, m_close_log);
+
+}
