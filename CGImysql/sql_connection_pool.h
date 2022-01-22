@@ -6,6 +6,7 @@
 #include <string>
 #include <list>
 #include <mysql/mysql.h>
+#include <map>
 
 #include "../log/log.h"
 #include "../lock/lock.h"

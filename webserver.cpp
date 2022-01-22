@@ -47,6 +47,7 @@ void Webserver::log_write()
     }
 }
 
+// 创建数据库连接池
 void Webserver::sql_pool(){
     // 创建一个数据库连接池的对象
     m_connPool = connection_pool::GetInstance();
@@ -54,5 +55,10 @@ void Webserver::sql_pool(){
 
     // 初始化数据库读取数据
     users->initmysql_result(m_connPool);
+
+}
+
+// 创建线程池
+void Webserver::thread_pool(){
 
 }

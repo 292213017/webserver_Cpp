@@ -24,6 +24,8 @@ int main(int argc, char **argv){
     //数据库
     webserver.sql_pool();
     
+    //线程池
+    webserver.thread_pool();
 
     return 0;
 }
