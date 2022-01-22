@@ -42,10 +42,66 @@ void connection_pool::init(string url, string User, string PassWord, string Data
         ++ m_FreeConn;
     }
 
+    reserve = sem(m_FreeConn);
     m_MaxConn = m_FreeConn;
 }
-// reserve = sem(m_FreeConn);
+
+
+// 从数据库池中取出一个空闲的连接，更新使用和空闲的连接数
+MYSQL *connection_pool::GetConnection(){
+    MYSQL *con = NULL;
+
+    if(0 == connList.size()){
+        return NULL;
+    }
+
+    //等待生产者的生产
+    reserve.wait();
+
+    lock.lock();
+
+    // 从连接池中找到list最前面的链表
+    con = connList.front();
+    connList.pop_front();
+
+    -- m_FreeConn;
+    ++ m_CurConn;
+
+    lock.unlock();
+
+    return con;
+
+}
+
+// 断开与数据库的连接
+bool connection_pool::ReleaseConnection(MYSQL *con){
+    if (NULL == con)
+        return false;
+    
+    lock.lock();
+    connList.push_back(con);
+    ++m_FreeConn;
+    -- m_CurConn;
+
+    lock.unlock();
+
+    // 相当于生产者生产产品
+    reserve.post();
+
+    return true;
+}
 
 connection_pool::~connection_pool(){
 
+}
+
+connectionRAII::connectionRAII(MYSQL **SQL, connection_pool *connPool){
+	*SQL = connPool->GetConnection();
+	
+	conRAII = *SQL;
+	poolRAII = connPool;
+}
+
+connectionRAII::~connectionRAII(){
+	poolRAII->ReleaseConnection(conRAII);
 }
