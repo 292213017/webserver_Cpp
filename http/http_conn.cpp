@@ -29,6 +29,6 @@ void http_conn::initmysql_result(connection_pool *connPool){
         string temp2(row[1]);
         users[temp1] = temp2;
     }
-
-
 }
+
+int http_conn::m_epollfd = -1;

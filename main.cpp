@@ -27,5 +27,14 @@ int main(int argc, char **argv){
     //线程池
     webserver.thread_pool();
 
+    //触发模式
+    webserver.trig_mode();
+
+    // 监听启动
+    webserver.eventListen();
+
+    //运行
+    webserver.eventLoop();
+
     return 0;
 }
