@@ -16,6 +16,7 @@ public:
 
 private:
     /*工作线程运行的函数，它不断从工作队列中取出任务并执行之*/
+    // 这里之所以用静态，因为它要作为回调函数使用，但是他又在一个类内，所以设置为static形式，消除this指针的问题
     static void *worker(void *arg);
     void run();
 

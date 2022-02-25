@@ -5,8 +5,11 @@ map<string, string> users;
 void http_conn::initmysql_result(connection_pool *connPool){
     // 首先从连接池中取出一个连接
     MYSQL *mysql = NULL;
+
+    // RAll机制，从sql连接池中，取出一个sql连接
     connectionRAII mysqlcon(&mysql, connPool);
 
+    // mysql_query 这个可以调用sql语句
     if (mysql_query(mysql, "SELECT username,passwd FROM user"))
     {
         printf("SELECT error:%s\n", mysql_error(mysql));

@@ -42,7 +42,7 @@ void Webserver::log_write()
 {
     if (0 == m_close_log)
     {
-        //初始化日志
+        //初始化日志  1表示异步写入 0表示同步写入
         if (1 == m_log_write)
             Log::get_instance()->init("./ServerLog", m_close_log, 2000, 800000, 800);
         else
@@ -56,14 +56,14 @@ void Webserver::sql_pool(){
     m_connPool = connection_pool::GetInstance();
     m_connPool->init("localhost",m_user,m_passWord,m_databaseName,3306, m_sql_num, m_close_log);
 
-    // 初始化数据库读取数据
+    // 初始化数据库并初始化用户map
     users->initmysql_result(m_connPool);
 
 }
 
 // 创建线程池
 void Webserver::thread_pool(){
-    //线程池
+    //线程池 创建线程和分离线程
     m_pool = new threadpool<http_conn>(m_actormodel, m_connPool, m_thread_num);
 }
 
@@ -97,6 +97,7 @@ void Webserver::trig_mode()
 
 }
 
+// 设定监听事件
 void Webserver::eventListen(){
     // 创建监听文件描述符
     m_listenfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -157,7 +158,65 @@ void Webserver::eventListen(){
 
 }
 
+// 服务器的运行代码
 void Webserver::eventLoop()
 {
+    bool timeout = false;
+    bool stop_server = false;
 
+    while (!stop_server)
+    {
+        //监测发生事件的文件描述符
+        int number = epoll_wait(m_epollfd, events, MAX_EVENT_NUMBER, -1);
+        if (number < 0 && errno != EINTR)
+        {
+            LOG_ERROR("%s", "epoll failure");
+            break;
+        }
+
+        //轮询文件描述符
+        for (int i = 0; i < number; i++)
+        {
+            int sockfd = events[i].data.fd;
+
+            //处理新到的客户连接
+            if (sockfd == m_listenfd)
+            {
+                bool flag = dealclinetdata();
+                if (false == flag)
+                    continue;
+            }
+            //处理异常事件
+            else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+            {
+                //服务器端关闭连接，移除对应的定时器
+                util_timer *timer = users_timer[sockfd].timer;
+                deal_timer(timer, sockfd);
+            }
+            //处理信号 //管道读端对应文件描述符发生读事件
+            else if ((sockfd == m_pipefd[0]) && (events[i].events & EPOLLIN))
+            {
+                bool flag = dealwithsignal(timeout, stop_server);
+                if (false == flag)
+                    LOG_ERROR("%s", "dealclientdata failure");
+            }
+            //处理客户连接上接收到的数据
+            else if (events[i].events & EPOLLIN)
+            {
+                dealwithread(sockfd);
+            }
+            else if (events[i].events & EPOLLOUT)
+            {
+                dealwithwrite(sockfd);
+            }
+        }
+        if (timeout)
+        {
+            utils.timer_handler();
+
+            LOG_INFO("%s", "timer tick");
+
+            timeout = false;
+        }
+    }
 }

@@ -5,12 +5,13 @@
  #include <string.h>
 #include <time.h>
 
-
+// 懒汉模型
 class Log{
     public:
         Log();
         ~Log();
 
+        // 返回对应的单例模式
         static Log *get_instance()
         {
             static Log instance;

@@ -13,6 +13,7 @@
 
 using namespace std;
 
+// 也是一个单例
 class connection_pool
 {
 public:

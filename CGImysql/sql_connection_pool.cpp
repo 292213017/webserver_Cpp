@@ -31,6 +31,7 @@ void connection_pool::init(string url, string User, string PassWord, string Data
             exit(1);
         }
 
+        // con连接到数据库
         con = mysql_real_connect(con, url.c_str(), User.c_str(), PassWord.c_str(), DataBaseName.c_str(), Port, NULL, 0);
 
         if(con == NULL){
@@ -42,6 +43,7 @@ void connection_pool::init(string url, string User, string PassWord, string Data
         ++ m_FreeConn;
     }
 
+    // 将信号量设置为m_FreeConn，供后面--使用
     reserve = sem(m_FreeConn);
     m_MaxConn = m_FreeConn;
 }
