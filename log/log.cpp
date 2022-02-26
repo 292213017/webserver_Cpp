@@ -57,3 +57,56 @@ bool Log::init(const char *file_name, int close_log, int log_buf_size, int split
     return true;
 
 }
+
+//将输出内容按照标准格式整理
+void Log::write_log(int level, const char *format, ...){
+    struct timeval now = {0, 0};
+    gettimeofday(&now, NULL);
+    time_t t = now.tv_sec;
+    struct tm *sys_tm = localtime(&t);
+    struct tm my_tm = *sys_tm;
+    char s[16] = {0};
+
+    //日志分级
+    switch (level)
+    {
+    case 0:
+        strcpy(s, "[debug]:");
+        break;
+    case 1:
+        strcpy(s, "[info]:");
+        break;
+    case 2:
+        strcpy(s, "[warn]:");
+        break;
+    case 3:
+        strcpy(s, "[erro]:");
+        break;
+    default:
+        strcpy(s, "[info]:");
+        break;
+    }
+
+    m_mutex.lock();
+    m_count++;
+
+    //日志不是今天或写入的日志行数是最大行的倍数
+    //m_split_lines为最大行数
+    if (m_today != my_tm.tm_mday || m_count % m_split_lines == 0) //everyday log
+    {
+
+        char new_log[256] = {0};
+        // 将缓存区的东西全部刷入文件
+        fflush(m_fp);
+        fclose(m_fp);
+        char tail[16] = {0};
+    }
+}
+
+void Log::flush(void)
+{
+    m_mutex.lock();
+    //强制刷新写入流缓冲区
+    fflush(m_fp);
+    m_mutex.unlock();
+}

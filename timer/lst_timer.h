@@ -41,7 +41,7 @@ public:
 public:
     time_t expire;
     
-    // void (* cb_func)(client_data *);
+    void (* cb_func)(client_data *);
     client_data *user_data;
     util_timer *prev;
     util_timer *next;
@@ -50,10 +50,19 @@ public:
 class sort_timer_lst
 {
 public:
+    // 创建链表
     sort_timer_lst();
+    // 清空链表
     ~sort_timer_lst();
 
+    void add_timer(util_timer *timer);
+    void adjust_timer(util_timer *timer);
+    void del_timer(util_timer *timer);
+    void tick();
+
 private:
+
+    void add_timer(util_timer *timer, util_timer *lst_head);
     util_timer *head;
     util_timer *tail;
 };
@@ -89,5 +98,7 @@ public:
     static int u_epollfd;
     int m_TIMESLOT;
 };
+
+void cb_func(client_data *user_data);
 
 #endif

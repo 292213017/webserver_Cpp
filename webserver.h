@@ -38,15 +38,17 @@ public:
                      int opt_linger, int trigmode, int sql_num, int thread_num, int close_log, int actor_model);
 
     void log_write();
-
     void sql_pool();
-
+    void timer(int connfd, struct sockaddr_in client_address);
+    void adjust_timer(util_timer *timer);
     void thread_pool();
-
     void trig_mode();
-
+    void deal_timer(util_timer *timer, int sockfd);
+    bool dealclinetdata();
+    bool dealwithsignal(bool& timeout, bool& stop_server);
+    void dealwithread(int sockfd);
+    void dealwithwrite(int sockfd);
     void eventListen();
-
     void eventLoop();
 
 public:
